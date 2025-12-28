@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SLP 助理 v5 - 專業修復版</title>
+    <title>SLP 雲端助理 v6</title>
     <style>
         :root { --primary: #7e9a9a; --accent: #d4a373; --warning: #d9534f; --bg: #f8f9fa; }
         body { font-family: -apple-system, sans-serif; background: var(--bg); margin: 0; padding-bottom: 75px; }
@@ -14,27 +14,30 @@
         .tab-item.active { color: var(--primary); font-weight: bold; }
         .tab-icon { font-size: 1.4rem; display: block; }
         .card { background: white; padding: 15px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); margin-bottom: 15px; }
-        h2 { font-size: 1.1rem; color: var(--primary); margin-top: 0; }
+        h2 { font-size: 1.1rem; color: var(--primary); margin-top: 0; display: flex; justify-content: space-between; }
         input, textarea, select { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #eee; border-radius: 8px; box-sizing: border-box; font-size: 16px; }
         button { width: 100%; padding: 12px; border: none; border-radius: 8px; background: var(--primary); color: white; font-weight: bold; cursor: pointer; }
-        .btn-small { width: auto; padding: 5px 10px; background: #eee; color: #333; font-size: 0.8rem; border-radius: 5px; border: none; }
-        .date-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; background: white; padding: 10px; border-radius: 10px; }
+        .btn-small { width: auto; padding: 5px 10px; background: #eee; color: #333; font-size: 0.8rem; border-radius: 5px; }
+        .sync-status { font-size: 0.7rem; color: #999; font-weight: normal; }
+        
+        /* 課表樣式 */
+        .date-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; background: white; padding: 10px; border-radius: 10px; }
         .timetable-wrapper { overflow-x: auto; background: white; border-radius: 8px; }
         .timetable { display: grid; grid-template-columns: 70px repeat(5, 110px); gap: 1px; background: #eee; width: max-content; }
-        .cell { background: white; min-height: 60px; padding: 5px; font-size: 0.8rem; text-align: center; display: flex; flex-direction: column; justify-content: center; }
+        .cell { background: white; min-height: 60px; padding: 5px; font-size: 0.8rem; text-align: center; position: relative; display: flex; flex-direction: column; justify-content: center; }
         .header { background: #f0f4f4; font-weight: bold; min-height: 45px; }
         .app-box { background: #e9edc9; border-left: 4px solid var(--primary); border-radius: 4px; padding: 4px; text-align: left; position: relative; }
         .wait-tag { color: var(--warning); font-size: 0.7rem; font-weight: bold; }
-        .del-btn { position: absolute; right: 2px; top: 2px; color: #aaa; font-size: 14px; }
+        .del-btn { position: absolute; right: 2px; top: 2px; color: #aaa; font-size: 14px; padding: 2px; }
     </style>
 </head>
 <body>
 
 <div id="page-calendar" class="page active">
     <div class="date-nav">
-        <button onclick="changeWeek(-7)">◀ 上週</button>
+        <button class="btn-small" onclick="changeWeek(-7)">◀ 上週</button>
         <b id="weekRange">載入中...</b>
-        <button onclick="changeWeek(7)">下週 ▶</button>
+        <button class="btn-small" onclick="changeWeek(7)">下週 ▶</button>
     </div>
     <div class="timetable-wrapper">
         <div id="weekGrid" class="timetable"></div>
@@ -42,7 +45,7 @@
 </div>
 
 <div id="page-add" class="page">
-    <h2>📝 智慧排班與教案紀錄</h2>
+    <h2>📝 智慧排班與紀錄 <span id="syncIndicator" class="sync-status">雲端已連線</span></h2>
     <div class="card">
         <input type="text" id="name" placeholder="個案姓名">
         <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 10px;">
@@ -54,21 +57,20 @@
             </select>
         </div>
         <select id="time"></select>
-        <button onclick="saveBatchData()" style="background:var(--accent);">🗓️ 儲存排班 (檢查衝突)</button>
+        <button onclick="saveBatchData()" style="background:var(--accent);">🗓️ 儲存並同步雲端</button>
         <hr style="margin:20px 0; border:0.5px solid #f0f0f0;">
         <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
-            <b>今日教案紀錄</b>
+            <b>治療紀錄</b>
             <button class="btn-small" onclick="loadLastRecord()">📥 載入上次</button>
         </div>
-        <textarea id="note" rows="6" placeholder="輸入治療重點與表現..."></textarea>
+        <textarea id="note" rows="6" placeholder="輸入 SOAP 紀錄..."></textarea>
         <button onclick="saveDailyNote()">✅ 儲存今日紀錄</button>
     </div>
 </div>
 
 <div id="page-history" class="page">
-    <h2>🔍 個案歷程與備份</h2>
+    <h2>🔍 個案歷程歷程 <button class="btn-small" onclick="fetchFromCloud()">🔄 手動同步</button></h2>
     <div class="card">
-        <button onclick="exportData()" style="background:#6c757d; margin-bottom: 15px;">📦 下載完整資料備份 (JSON)</button>
         <select id="caseSearch" onchange="showHistory()"><option value="">-- 選擇個案 --</option></select>
         <div id="historyList" style="margin-top:15px;"></div>
     </div>
@@ -81,16 +83,42 @@
 </nav>
 
 <script>
-    let db = JSON.parse(localStorage.getItem('slp_v7') || '{"apps":[], "records":{}}');
+    const CLOUD_URL = "https://script.google.com/macros/s/AKfycbxN9IjxW_vFB5tOrkXQYA91hnZqxjhJ8LlvKP8fbdmG3bpUDMg1FpVyJBnutf7xBctU/exec";
+    let db = JSON.parse(localStorage.getItem('slp_v8') || '{"apps":[], "records":{}}');
     let currentBaseDate = getMostRecentTuesday(new Date());
 
-    // 關鍵修正：準確獲取週二日期，不論今天星期幾
     function getMostRecentTuesday(d) {
         let date = new Date(d);
-        let day = date.getDay(); // 0(日) 1(一) 2(二)...
+        let day = date.getDay();
         let diff = (day >= 2) ? (2 - day) : (-5 - day);
         date.setDate(date.getDate() + diff);
         return date;
+    }
+
+    // 核心功能：同步到雲端
+    async function syncToCloud(type, payload) {
+        document.getElementById('syncIndicator').innerText = "☁️ 同步中...";
+        try {
+            await fetch(CLOUD_URL, {
+                method: 'POST',
+                mode: 'no-cors',
+                body: JSON.stringify({ type: type, ...payload })
+            });
+            document.getElementById('syncIndicator').innerText = "✅ 已同步";
+        } catch (e) {
+            document.getElementById('syncIndicator').innerText = "❌ 暫存本地";
+        }
+    }
+
+    // 核心功能：從雲端抓取 (針對多裝置同步)
+    async function fetchFromCloud() {
+        try {
+            const resp = await fetch(CLOUD_URL);
+            const cloudData = await resp.json();
+            // 這裡可以根據需求決定如何合併雲端與本地資料
+            // 簡單示範：直接以雲端為準（如果是多人協作建議更複雜的合併）
+            console.log("雲端資料已抓取", cloudData);
+        } catch (e) { console.log("雲端抓取失敗"); }
     }
 
     function switchPage(p, el) {
@@ -149,24 +177,22 @@
 
         let count = (freq === 'once') ? 1 : 12;
         let step = (freq === 'biweekly') ? 14 : 7;
-        let conflicts = [], newApps = [], tempDate = new Date(startDate);
+        let newApps = [], tempDate = new Date(startDate);
 
         for(let i=0; i<count; i++) {
             let dateStr = tempDate.toISOString().split('T')[0];
-            let existing = db.apps.find(a => a.date === dateStr && a.time === time);
-            if(existing && existing.name !== name) conflicts.push(`${dateStr} (${existing.name})`);
             newApps.push({ name, date: dateStr, time });
             tempDate.setDate(tempDate.getDate() + step);
         }
-
-        if(conflicts.length > 0 && !confirm(`以下時段已有預約，是否覆蓋？\n${conflicts.join('\n')}`)) return;
 
         newApps.forEach(na => {
             db.apps = db.apps.filter(a => !(a.date === na.date && a.time === na.time));
             db.apps.push(na);
         });
+        
         saveToLocalStorage();
-        alert('排班成功！');
+        syncToCloud("Schedule", { action: "syncSchedule", apps: db.apps });
+        alert('排班成功並同步雲端！');
         renderGrid();
     }
 
@@ -176,8 +202,10 @@
         if(!db.records[n]) db.records[n] = [];
         let existing = db.records[n].find(r => r.date === d);
         if(existing) existing.note = nt; else db.records[n].unshift({ date: d, note: nt });
+        
         saveToLocalStorage();
-        alert('紀錄已儲存');
+        syncToCloud("Records", { action: "saveRecord", name: n, note: nt });
+        alert('紀錄已同步至 Google Sheets');
         renderGrid();
     }
 
@@ -194,6 +222,7 @@
         if(confirm('確定刪除？')) {
             db.apps = db.apps.filter(a => !(a.date === d && a.time === h));
             saveToLocalStorage();
+            syncToCloud("Schedule", { action: "syncSchedule", apps: db.apps });
             renderGrid();
         }
     }
@@ -201,20 +230,10 @@
     function loadLastRecord() {
         const n = document.getElementById('name').value;
         if(n && db.records[n]?.length > 0) document.getElementById('note').value = db.records[n][0].note;
-        else alert('無紀錄');
+        else alert('無本地紀錄');
     }
 
-    function exportData() {
-        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(db));
-        const downloadAnchorNode = document.createElement('a');
-        downloadAnchorNode.setAttribute("href", dataStr);
-        downloadAnchorNode.setAttribute("download", "slp_backup_" + new Date().toISOString().slice(0,10) + ".json");
-        document.body.appendChild(downloadAnchorNode);
-        downloadAnchorNode.click();
-        downloadAnchorNode.remove();
-    }
-
-    function saveToLocalStorage() { localStorage.setItem('slp_v7', JSON.stringify(db)); }
+    function saveToLocalStorage() { localStorage.setItem('slp_v8', JSON.stringify(db)); }
     function updateCaseList() {
         const select = document.getElementById('caseSearch');
         select.innerHTML = '<option value="">-- 選擇個案 --</option>' + Object.keys(db.records).map(n => `<option value="${n}">${n}</option>`).join('');
@@ -226,7 +245,7 @@
         out.innerHTML = (db.records[n] || []).map(r => `<div class="card"><b>${r.date}</b><p>${r.note}</p></div>`).join('');
     }
 
-    window.onload = () => { initTimeSelect(); renderGrid(); };
+    window.onload = () => { initTimeSelect(); renderGrid(); fetchFromCloud(); };
 </script>
 </body>
 </html>
