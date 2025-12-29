@@ -3,26 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SLP 雲端助理 v9</title>
+    <title>SLP 雲端同步系統 v10</title>
     <style>
         :root { --primary: #7e9a9a; --accent: #d4a373; --warning: #d9534f; --bg: #f4f7f6; }
-        body { font-family: -apple-system, "PingFang TC", sans-serif; background: var(--bg); margin: 0; padding-bottom: 80px; overflow-x: hidden; }
-        .page { display: none; padding: 12px; box-sizing: border-box; width: 100%; }
+        body { font-family: -apple-system, sans-serif; background: var(--bg); margin: 0; padding-bottom: 80px; }
+        .page { display: none; padding: 12px; }
         .page.active { display: block; }
-        .tab-bar { position: fixed; bottom: 0; width: 100%; height: 70px; background: white; border-top: 1px solid #eee; display: flex; z-index: 1000; box-shadow: 0 -2px 10px rgba(0,0,0,0.05); }
+        .tab-bar { position: fixed; bottom: 0; width: 100%; height: 70px; background: white; border-top: 1px solid #eee; display: flex; z-index: 1000; }
         .tab-item { text-align: center; color: #888; text-decoration: none; font-size: 0.75rem; flex: 1; display: flex; flex-direction: column; justify-content: center; }
         .tab-item.active { color: var(--primary); font-weight: bold; }
-        .tab-icon { font-size: 1.5rem; margin-bottom: 2px; }
-        .card { background: white; padding: 15px; border-radius: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); margin-bottom: 15px; width: 100%; box-sizing: border-box; }
-        h2 { font-size: 1.2rem; color: var(--primary); margin: 10px 0; }
+        .tab-icon { font-size: 1.5rem; }
+        .card { background: white; padding: 15px; border-radius: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); margin-bottom: 15px; }
         input, textarea, select { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 16px; }
-        button { width: 100%; padding: 14px; border: none; border-radius: 8px; background: var(--primary); color: white; font-weight: bold; font-size: 1rem; cursor: pointer; margin: 5px 0; touch-action: manipulation; }
-        .btn-small { width: auto; padding: 6px 12px; background: #eee; color: #333; font-size: 0.8rem; margin: 0; }
-        .timetable-scroll { width: 100%; overflow-x: auto; background: white; border-radius: 8px; border: 1px solid #eee; -webkit-overflow-scrolling: touch; }
+        button { width: 100%; padding: 14px; border: none; border-radius: 8px; background: var(--primary); color: white; font-weight: bold; cursor: pointer; }
+        .timetable-scroll { width: 100%; overflow-x: auto; background: white; border-radius: 8px; border: 1px solid #eee; }
         .timetable { display: grid; grid-template-columns: 60px repeat(5, 100px); gap: 1px; background: #eee; width: max-content; }
         .cell { background: white; min-height: 55px; padding: 4px; font-size: 0.8rem; text-align: center; display: flex; flex-direction: column; justify-content: center; position: relative; }
-        .header { background: #f0f4f4; font-weight: bold; min-height: 45px; position: sticky; top: 0; z-index: 10; }
-        .app-box { background: #e9edc9; border-left: 3px solid var(--primary); border-radius: 4px; padding: 4px; text-align: left; font-size: 0.75rem; position: relative; line-height: 1.2; }
+        .header { background: #f0f4f4; font-weight: bold; min-height: 45px; }
+        .app-box { background: #e9edc9; border-left: 3px solid var(--primary); border-radius: 4px; padding: 4px; text-align: left; position: relative; font-size: 0.75rem; }
         .wait-tag { color: var(--warning); font-size: 0.65rem; font-weight: bold; display: block; }
         .del-btn { position: absolute; right: 0px; top: 0px; color: #ccc; font-size: 12px; padding: 4px; }
         #syncMsg { font-size: 0.75rem; text-align: center; color: var(--accent); padding: 5px; }
@@ -32,18 +30,18 @@
 
 <div id="page-calendar" class="page active">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-        <button class="btn-small" onclick="changeWeek(-7)">◀ 上週</button>
-        <b id="weekRange" style="font-size: 0.9rem;">載入中...</b>
-        <button class="btn-small" onclick="changeWeek(7)">下週 ▶</button>
+        <button style="width:auto; padding:5px 10px;" onclick="changeWeek(-7)">◀</button>
+        <b id="weekRange">正在定位當週...</b>
+        <button style="width:auto; padding:5px 10px;" onclick="changeWeek(7)">▶</button>
     </div>
-    <div id="syncMsg">🔄 正在連線雲端...</div>
+    <div id="syncMsg">🔄 正在連線雲端資料庫...</div>
     <div class="timetable-scroll">
         <div id="weekGrid" class="timetable"></div>
     </div>
 </div>
 
 <div id="page-add" class="page">
-    <h2>✍️ 排班與紀錄 <span id="syncIndicator" style="font-size: 0.7rem; font-weight: normal;">已就緒</span></h2>
+    <h2>✍️ 排班與紀錄 <span id="syncIndicator" style="font-size:0.7rem; font-weight:normal;"></span></h2>
     <div class="card">
         <input type="text" id="name" placeholder="個案姓名">
         <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 8px;">
@@ -52,25 +50,24 @@
         </div>
         <select id="freq">
             <option value="once">單次上課</option>
-            <option value="weekly" selected>每週固定 (排12週)</option>
-            <option value="biweekly">隔週上課 (排12週)</option>
+            <option value="weekly" selected>每週固定 (自動排12週)</option>
         </select>
         <button onclick="saveBatchData()" style="background:var(--accent);">🗓️ 儲存並檢查衝突</button>
-        <hr style="margin:15px 0; border:0.5px solid #eee;">
+        <hr style="margin:20px 0; border:0; border-top:1px solid #eee;">
         <div style="display:flex; justify-content:space-between; align-items: center;">
             <b>SOAP 紀錄</b>
-            <button class="btn-small" onclick="loadLastRecord()">📥 載入上次</button>
+            <button style="width:auto; padding:5px 10px; background:#eee; color:#333; font-size:0.8rem;" onclick="loadLastRecord()">📥 載入上次</button>
         </div>
-        <textarea id="note" rows="8" placeholder="S:&#10;O:&#10;A:&#10;P:"></textarea>
+        <textarea id="note" rows="6" placeholder="輸入 SOAP 紀錄..."></textarea>
         <button onclick="saveDailyNote()" style="background:#28a745;">✅ 儲存今日紀錄</button>
     </div>
 </div>
 
 <div id="page-history" class="page">
-    <h2>🔍 個案歷程</h2>
+    <h2>🔍 個案歷程歷程</h2>
     <div class="card">
         <select id="caseSearch" onchange="showHistory()"><option value="">-- 選擇個案 --</option></select>
-        <div id="historyList" style="margin-top:15px;"></div>
+        <div id="historyList"></div>
     </div>
 </div>
 
@@ -81,9 +78,12 @@
 </nav>
 
 <script>
-    const CLOUD_URL = "https://script.google.com/macros/s/AKfycbz76G_xIw9dn78BTfTOJl5FhzSYCi_tY_qRHY1vef8RT6Sp8K9z5cxnCmyxrPWzsbn0/exec";
+    // 已更新為你最新的網址
+    const CLOUD_URL = "https://script.google.com/macros/s/AKfycbzDBIx0iQ72dF_8lnW73rbiCUJ8YcZSxi4EVO5LWFaW_Q1ZTaxWRf4EpsS-Cd2iSWNT/exec";
+    
     let db = { apps: [], records: {} };
 
+    // 定位當週星期二
     function getThisTuesday() {
         let d = new Date();
         let day = d.getDay(); 
@@ -93,6 +93,7 @@
     }
     let currentBaseDate = getThisTuesday();
 
+    // 從雲端抓取
     async function pullFromCloud() {
         const msg = document.getElementById('syncMsg');
         try {
@@ -102,17 +103,18 @@
                 db.apps = data.apps;
                 db.records = data.records;
                 renderGrid();
-                msg.innerText = "✅ 雲端同步完成";
+                msg.innerText = "✅ 雲端同步成功 (共 " + db.apps.length + " 筆排班)";
             }
-        } catch (e) { msg.innerText = "❌ 同步失敗，請檢查網路"; }
+        } catch (e) { msg.innerText = "❌ 同步失敗，請檢查權限"; }
     }
 
+    // 傳送到雲端
     async function syncToCloud(type, payload) {
         document.getElementById('syncIndicator').innerText = "☁️ 傳送中...";
         try {
             await fetch(CLOUD_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ type: type, ...payload }) });
-            document.getElementById('syncIndicator').innerText = "✅ 已更新";
-            if(type === "Schedule") pullFromCloud(); // 排班完強制重新抓取
+            document.getElementById('syncIndicator').innerText = "✅ 雲端已更新";
+            if(type === "Schedule") pullFromCloud(); // 排班完自動重新下載確認
         } catch (e) { alert("傳送失敗"); }
     }
 
@@ -148,14 +150,15 @@
         const freq = document.getElementById('freq').value, time = document.getElementById('time').value;
         if(!name || !startDate) return alert('請填寫姓名與日期');
 
-        let count = (freq === 'once') ? 1 : 12, step = (freq === 'biweekly') ? 14 : 7;
+        let count = (freq === 'once') ? 1 : 12, step = 7;
         let tempDate = new Date(startDate);
         let conflicts = [];
 
+        // 檢查衝突
         for(let i=0; i<count; i++) {
             let dStr = tempDate.toISOString().split('T')[0];
             let exist = db.apps.find(a => a.date === dStr && a.time === time);
-            if(exist && exist.name !== name) conflicts.push(`${dStr} ${time}:00 已有 ${exist.name}`);
+            if(exist && exist.name !== name) conflicts.push(`${dStr} 已有 ${exist.name}`);
             tempDate.setDate(tempDate.getDate() + step);
         }
 
@@ -168,19 +171,19 @@
             tempDate.setDate(tempDate.getDate() + step);
         }
         syncToCloud("Schedule", { action: "syncSchedule", apps: db.apps });
-        alert('排班成功！');
+        alert('正在同步雲端，請稍候...');
     }
 
     function saveDailyNote() {
         const n = document.getElementById('name').value, d = document.getElementById('date').value, nt = document.getElementById('note').value;
         if(!n || !d || !nt) return alert('資訊不完整');
         syncToCloud("Records", { action: "saveRecord", name: n, note: nt });
-        alert('紀錄已傳送至雲端');
+        alert('紀錄已成功傳送至 Google Sheets');
     }
 
     function deleteApp(d, h, e) {
         e.stopPropagation();
-        if(confirm('刪除此排班？')) {
+        if(confirm('確定刪除此排班？')) {
             db.apps = db.apps.filter(a => !(a.date === d && a.time === h));
             syncToCloud("Schedule", { action: "syncSchedule", apps: db.apps });
         }
@@ -227,7 +230,7 @@
         else alert('無歷史紀錄');
     }
 
-    window.onload = () => { initTimeSelect(); pullFromCloud(); };
+    window.onload = () => { initTimeSelect(); renderGrid(); pullFromCloud(); };
 </script>
 </body>
 </html>
