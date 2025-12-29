@@ -243,7 +243,29 @@
         out.innerHTML = (db.records[n] || []).map(r => `<div class="card"><b>${r.date}</b><p style="white-space: pre-wrap;">${r.note}</p></div>`).join('');
     }
 
-    window.onload = () => { initTimeSelect(); renderGrid(); };
+window.onload = async () => { 
+    initTimeSelect(); 
+    renderGrid(); 
+    
+    // 新增：嘗試從雲端同步
+    const indicator = document.getElementById('syncIndicator');
+    indicator.innerText = "🔄 正在從雲端下載最新資料...";
+    
+    try {
+        const response = await fetch(CLOUD_URL);
+        const cloudData = await response.json();
+        
+        if (cloudData.apps && cloudData.apps.length > 0) {
+            db.apps = cloudData.apps;
+            db.records = cloudData.records;
+            saveToLocalStorage(); // 存入本地，下次離線也能看
+            renderGrid();
+            indicator.innerText = "✅ 雲端同步完成";
+        }
+    } catch (e) {
+        indicator.innerText = "⚠️ 離線模式 (無法連網)";
+    }
+};
 </script>
 </body>
 </html>
